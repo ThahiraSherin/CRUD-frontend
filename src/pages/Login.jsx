@@ -12,22 +12,35 @@ export default function Login() {
     setErr('');
 
     try {
-      const res = await API.post('/login', form);
+      const res = await API.post('/auth/login', form);
 
-      // ✅ Your backend response structure
-      const token = res.data?.token || res.data?.data?.token;
-      const user = res.data?.data;
+      console.log('Login response:', res.data); // 👈 Debug: see actual response
 
-      if (!token || !user) {
-        throw new Error('Invalid login response from server');
+      // ✅ Handle various response structures
+      const token =
+        res.data?.token ||
+        res.data?.data?.token ||
+        res.data?.accessToken;
+
+      const user =
+        res.data?.user ||
+        res.data?.data?.user ||
+        res.data?.data;
+
+      if (!token) {
+        throw new Error('Invalid login response from server - no token');
       }
 
       // ✅ Store values in localStorage
       localStorage.setItem('token', token);
-      localStorage.setItem('userId', user.id || user._id);
-      localStorage.setItem('name', user.name);
+      if (user?.id || user?._id) {
+        localStorage.setItem('userId', user.id || user._id);
+      }
+      if (user?.name) {
+        localStorage.setItem('name', user.name);
+      }
 
-      nav('/profile');
+      nav('/leads');
     } catch (error) {
       console.error('Login error:', error);
 
@@ -57,6 +70,7 @@ export default function Login() {
             <label className="block text-gray-700 mb-2 font-medium">Email</label>
             <input
               type="email"
+              autoComplete="email"
               className="w-full max-w-full sm:max-w-[90%] mx-auto px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 block"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -68,6 +82,7 @@ export default function Login() {
             <label className="block text-gray-700 mb-2 font-medium">Password</label>
             <input
               type="password"
+              autoComplete="current-password"
               className="w-full max-w-full sm:max-w-[90%] mx-auto px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 block"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}

@@ -6,6 +6,7 @@ export default function Register() {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [errors, setErrors] = useState([]);
   const [serverMsg, setServerMsg] = useState('');
+  const [loading, setLoading] = useState(false);
   const nav = useNavigate();
 
   const handleChange = (e) => {
@@ -21,13 +22,13 @@ export default function Register() {
     e.preventDefault();
     setErrors([]);
     setServerMsg('');
+    setLoading(true);
 
     try {
-      const res = await API.post('/register', form);
-      if (res.data.success) {
-        alert(res.data.message || 'Registered successfully');
-        nav('/login');
-      }
+      const res = await API.post('/auth/register', form);
+      // If request succeeds (status 200/201), user is registered
+      alert(res.data.message || 'Registered successfully!');
+      nav('/login');
     } catch (error) {
       if (error.response?.data?.errors) {
         setErrors(error.response.data.errors);
@@ -36,6 +37,7 @@ export default function Register() {
       } else {
         setServerMsg('Something went wrong. Please try again.');
       }
+      setLoading(false);
     }
   };
 
@@ -102,9 +104,10 @@ export default function Register() {
 
           <button
             type="submit"
-            className="w-full sm:w-[90%] mx-auto py-3 bg-purple-500 text-white font-semibold rounded-lg shadow-md hover:bg-purple-600 transition-colors duration-200 block"
+            disabled={loading}
+            className="w-full sm:w-[90%] mx-auto py-3 bg-purple-500 text-white font-semibold rounded-lg shadow-md hover:bg-purple-600 transition-colors duration-200 block disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Register
+            {loading ? 'Registering...' : 'Register'}
           </button>
         </form>
 
